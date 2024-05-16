@@ -54,7 +54,8 @@ class DataBase:
                 "status": False
             }
         return {
-            "status": True
+            "status": True,
+            "info_user": info_users
         } 
         
     def create_user(self, message:dict):
@@ -75,6 +76,23 @@ class DataBase:
 
 
         self.close(sql["cursor"], sql["connect"])
+
+    def insert_message(self, message: dict):
+        
+        sql = self.connect_db()
+        date = datetime.datetime.now().strftime("%Y-%m-%d")
+        sql["cursor"].execute('''
+            INSERT INTO messages (
+                 id_user, message_id, message_text, data_send            
+            ) VALUES (?, ?, ?, ?)
+        ''', (
+            ###########
+        ))
+        sql["connect"].commit()
+
+
+        self.close(sql["cursor"], sql["connect"])
+
     def close(self, cursor, connect):
         cursor.close()
         connect.close()
@@ -108,12 +126,9 @@ class TelegramBot(DataBase):
         def echo_all(message):
             self.bot.reply_to(
                 message,
-                "Не понимаю...."
+                "Сообщение отправлено админу!"
             )
-            self.bot.delete_message(
-                chat_id=message.chat.id,
-                message_id=message.message_id
-            )
+            
 
         self.bot.polling()
 
