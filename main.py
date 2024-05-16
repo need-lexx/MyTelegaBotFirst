@@ -57,7 +57,24 @@ class DataBase:
             "status": True
         } 
         
+    def create_user(self, message:dict):
+        sql = self.connect_db()
+        date = datetime.datetime.now().strftime("%Y-%m-%d")
+        sql["cursor"].execute('''
+            INSERT INTO users (
+                 id_telegram, username, first_name, last_name, date_registration             
+            ) VALUES (?, ?, ?, ?, ?)
+        ''', (
+            message.from_user.id,
+            message.from_user.username,
+            message.from_user.first_name,
+            message.from_user.last_name,
+            date
+        ))
+        sql["connect"].commit()
 
+
+        self.close(sql["cursor"], sql["connect"])
     def close(self, cursor, connect):
         cursor.close()
         connect.close()
@@ -79,6 +96,7 @@ class TelegramBot(DataBase):
             if self.check_user(message.from_user.id)["status"]:
                 text += "С возвращением!"
             else:
+                self.create_user(message)
                 text += f"Добро пожаловать, {message.from_user.first_name}!"
             
             self.bot.send_message(
