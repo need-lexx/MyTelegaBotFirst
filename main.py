@@ -95,12 +95,22 @@ class DataBase:
         sql["connect"].commit()
 
         id_message = sql["cursor"].lastrowid
-
+        
         self.close(sql["cursor"], sql["connect"])
 
         return id_message
 
+    def check_application(self, id_application:int):
+        sql = self.connect_db()
 
+        sql["cursor"].execute('''
+           SELECT message_id FROM messages WHERE id =? 
+        ''', (id_application, ))
+        data_message = sql["cursor"].fetchone()
+        self.close(sql["cursor"], sql["connect"])
+
+        return data_message
+    
     def close(self, cursor, connect):
         cursor.close()
         connect.close()
@@ -149,16 +159,17 @@ ID пользователя: {message.from_user.id}
                 replay_message = str(message.reply_to_message.text)
                 id_application = re.search(r'Номер заявки №(\d+)', replay_message).group(1)
                 id_user = re.search(r'ID пользователя: (\d+)', replay_message).group(1)
-                message_text = replay_message.split("\n")[2].split(': ')[-1] # нужно исправить
-                current_text = message.text
+                
+                id_message_user = self.check_application(id_application)
                 
                 self.bot.send_message(
                     id_user, 
-                    f"Ответ от администратора: {current_text}"
+                    f"Ответ от администратора: {message.text}", 
+                    reply_to_message_id = id_message_user[0]
                 )
 
 
-                print(id_application, id_user, message_text)
+                print()
         self.bot.polling()
 
 
